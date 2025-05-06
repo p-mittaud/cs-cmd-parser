@@ -133,4 +133,4 @@ $RECYCLE.BIN/
 _NCrunch*
 
 # Visual Studio files
-*/.vs/
+.vs/
