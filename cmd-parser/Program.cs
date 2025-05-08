@@ -4,14 +4,7 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Program entry point!");
-            CmdLine startCmd = new CmdLine(args);
-            Console.WriteLine($"Found {startCmd.args.Length} arguments in startCmd: ");
-            foreach (var arg in startCmd.args)
-            {
-                Console.WriteLine($"{arg}");
-            }
-
+            Console.WriteLine("Enter a command line: ");
             var inputLine = Console.ReadLine();
             if (inputLine == null)
             {
@@ -49,15 +42,22 @@
 
             CmdLine cmdLine = new CmdLine(inputLine, config);
 
-            Console.WriteLine($"Found {cmdLine.args.Length} arguments: ");
-            foreach (var arg in cmdLine.args)
+            foreach (var pair in cmdLine.cmdOptions)
             {
-                Console.WriteLine($"{arg}");
+                Console.WriteLine($"key: {pair.Key}");
+                foreach (var value in pair.Value)
+                {
+                    Console.WriteLine($"\t{value}");
+                }
             }
-            Console.WriteLine($"Found {cmdLine.optionsCmd.Length} options: ");
-            foreach (var option in cmdLine.optionsCmd)
+
+            var values = cmdLine.GetOptionValues<DateTime>("--int-input");
+            if (values != null)
             {
-                Console.WriteLine($"{option}");
+                foreach (var value in values)
+                {
+                    Console.WriteLine(value);
+                }
             }
         }
     }

@@ -9,16 +9,12 @@
         public string name { get; set; } = default!;
         public string? description { get; set; }
         public bool hasArgs { get; set; }
-        // TODO: for now, argCount is absolute
         public int? argCount { get; set; }
     }
 
     public class CmdLine
     {
-        private readonly string _command;
         public string[] args { get; set; } = new string[0];
-
-        public string[] optionsCmd { get; set; } = new string[0];
 
         public Dictionary<string, string[]> cmdOptions { get; set; } = new Dictionary<string, string[]>();
 
@@ -30,10 +26,59 @@
             inString = null;
         }
 
+        public CmdLine(string command, CmdConfig[]? inCmdConfig = null)
+        {
+            // Cut line in args
+            string? currentString = null;
+            bool bInQuotes = false;
+
+            for (int i = 0; i < command.Length; i++)
+            {
+                if (command[i] == '"')
+                {
+                    if (bInQuotes)
+                    {
+                        AddArg(ref currentString);
+                    }
+                    bInQuotes = !bInQuotes;
+                    continue;
+                }
+                else if (bInQuotes || command[i] != ' ')
+                {
+                    currentString = currentString == null ? command[i].ToString() : currentString + command[i];
+                }
+                else if (currentString != null)
+                {
+                    AddArg(ref currentString);
+                }
+                if (currentString != null && i + 1 == command.Length)
+                {
+                    AddArg(ref currentString);
+                }
+            }
+
+            if (bInQuotes)
+            {
+                // throw exception, invalid commandLine
+                Console.Error.WriteLine("Invalid Command received in CommandLine!");
+            }
+
+            _cmdConfig = inCmdConfig ?? new CmdConfig[0];
+
+            CreateOptionsCmd();
+        }
+
+        public CmdLine(string[] inArgs, CmdConfig[]? cmdConfig = null)
+        {
+            args = inArgs;
+
+            _cmdConfig = cmdConfig ?? new CmdConfig[0];
+
+            CreateOptionsCmd();
+        }
+
         private void CreateOptionsCmd()
         {
-            // TODO: read from config existing option possibilities: for now, if arg was read from a quote string, it is considered as an option if it contains the "--" start
-
             // TODO: add "isolated-args": arguments which are not bound to a command
 
             int expectedArgCount = 0;
@@ -50,8 +95,6 @@
                 }
                 else if (arg.StartsWith("--") && !arg.Contains(" "))
                 {
-                    optionsCmd = optionsCmd.Append(arg).ToArray();
-
                     var cmdOption = Array.Find(_cmdConfig, elem => elem.name == arg);
                     if (cmdOption != null)
                     {
@@ -78,61 +121,41 @@
 
         public bool ContainsOption(string inOption)
         {
-            return optionsCmd.Contains(inOption);
+            return cmdOptions.ContainsKey(inOption);
         }
 
-        public CmdLine(string command, CmdConfig[]? inCmdConfig = null)
+        public T[]? GetOptionValues<T>(string inOption)
         {
-            _command = command;
-
-            // Cut line in args
-            string? currentString = null;
-            bool bInQuotes = false;
-
-            for (int i = 0; i < _command.Length; i++)
+            if (!cmdOptions.ContainsKey(inOption))
             {
-                if (_command[i] == '"')
+                return null;
+            }
+
+            T[] optionValues = new T[0];
+
+            foreach (var arg in cmdOptions[inOption])
+            {
+                try
                 {
-                    if (bInQuotes)
+                    var convertedArg = (T)Convert.ChangeType(arg, typeof(T));
+                    if (convertedArg != null)
                     {
-                        AddArg(ref currentString);
+                        optionValues = optionValues.Append(convertedArg).ToArray();
                     }
-                    bInQuotes = !bInQuotes;
-                    continue;
+                    else
+                    {
+                        Console.WriteLine($"Failed to convert {arg} to type {typeof(T).FullName}");
+                        return null;
+                    }
                 }
-                else if (bInQuotes || _command[i] != ' ')
+                catch (System.FormatException)
                 {
-                    currentString = currentString == null ? _command[i].ToString() : currentString + _command[i];
-                }
-                else if (currentString != null)
-                {
-                    AddArg(ref currentString);
-                }
-                if (currentString != null && i + 1 == _command.Length)
-                {
-                    AddArg(ref currentString);
+                    Console.WriteLine($"Failed to convert {arg} to type {typeof(T).FullName}");
+                    return null;
                 }
             }
 
-            if (bInQuotes)
-            {
-                // throw exception, invalid commandLine
-                Console.Error.WriteLine("Invalid Command received in CommandLine!");
-            }
-
-            _cmdConfig = inCmdConfig ?? new CmdConfig[0];
-
-            CreateOptionsCmd();
-        }
-
-        public CmdLine(string[] inArgs, CmdConfig[]? cmdConfig = null)
-        {
-            _command = String.Empty;
-            args = inArgs;
-
-            _cmdConfig = cmdConfig ?? new CmdConfig[0];
-
-            CreateOptionsCmd();
+            return optionValues;
         }
     }
 }
