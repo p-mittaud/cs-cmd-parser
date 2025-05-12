@@ -40,7 +40,7 @@
                 }
             };
 
-            CmdLine cmdLine = new CmdLine(inputLine, config);
+            CmdLine cmdLine = new CmdLine(inputLine, config, bContainsCmd:false);
 
             foreach (var pair in cmdLine.cmdOptions)
             {
@@ -49,6 +49,19 @@
                 {
                     Console.WriteLine($"\t{value}");
                 }
+            }
+            if (cmdLine.cmd != null)
+            {
+                Console.WriteLine($"Cmd: {cmdLine.cmd}");
+            }
+            if (cmdLine.baseArgs.Length != 0)
+            {
+                string tmpStr = cmdLine.baseArgs[0];
+                for (int i = 1; i < cmdLine.baseArgs.Length; i++)
+                {
+                    tmpStr += " " + cmdLine.baseArgs[i];
+                }
+                Console.WriteLine($"Found args: {tmpStr}");
             }
 
             var values = cmdLine.GetOptionValues<DateTime>("--int-input");
