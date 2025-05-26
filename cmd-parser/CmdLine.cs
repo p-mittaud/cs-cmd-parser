@@ -1,5 +1,12 @@
 ﻿namespace cmd_parser
 {
+    public class ArgumentInvalidException : ArgumentException
+    {
+        public ArgumentInvalidException() { }
+        public ArgumentInvalidException(string? paramName, string? message)
+            : base(paramName, message) { }
+    }
+
     /// <summary>
     /// Holds the configuration of a single command
     /// Contains the description, if the command has args, how many, ...
@@ -65,7 +72,8 @@
             if (bInQuotes)
             {
                 // TODO: throw exception, invalid commandLine
-                Console.Error.WriteLine("Invalid Command received in CommandLine!");
+                throw new ArgumentInvalidException(nameof(command), $"command contains an invalid number of quotes character!");
+                //Console.Error.WriteLine("Invalid Command received in CommandLine!");
             }
 
             if (bContainsCmd)
@@ -104,17 +112,33 @@
 
             foreach (var cmdConfig in cmdConfigArray)
             {
-                if (String.IsNullOrEmpty(cmdConfig.name) || cmdConfig.name.Contains(" "))
+                if (cmdConfig.name == null)
                 {
-                    // TODO: throw exception: invalid cmdConfig
-                    Console.Error.WriteLine("Received invalid cmdConfig: Invalid name!");
-                    return null;
+                    throw new ArgumentNullException(nameof(cmdConfig.name), "A CmdConfig contains a null name!");
                 }
-                if (cmdConfig.hasArgs && (cmdConfig.argCount == null || cmdConfig.argCount <= 0))
+                else if (cmdConfig.name.Length == 0)
                 {
-                    // TODO: throw exception: invalid cmdConfig
-                    Console.Error.WriteLine($"Received invalid cmdConfig: Invalid argCount for cmd {cmdConfig.name}!");
-                    return null;
+                    throw new ArgumentInvalidException(nameof(cmdConfig.name), "A CmdConfig contains an empty name!");
+                }
+                else if (cmdConfig.name.Contains(" "))
+                {
+                    throw new ArgumentInvalidException(nameof(cmdConfig.name), $"A CmdConfig contains an name with a space: \"{cmdConfig.name}\"!");
+                }
+                else if (cmdConfigArray.Count(elem => elem.name == cmdConfig.name) != 1)
+                {
+                    throw new ArgumentInvalidException(nameof(cmdConfig.name), $"cmdConfigArray contains multiple times the name {cmdConfig.name}!");
+                }
+
+                if (cmdConfig.hasArgs)
+                {
+                    if (cmdConfig.argCount == null)
+                    {
+                        throw new ArgumentNullException(nameof(cmdConfig.argCount), $"cmdConfig {cmdConfig.name} argCount is null!");
+                    }
+                    else if (cmdConfig.argCount <= 0)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(cmdConfig.argCount), $"cmdConfig {cmdConfig.name} argCount ({cmdConfig.argCount}) must be greater than 0!");
+                    }
                 }
             }
             return cmdConfigArray;
@@ -144,6 +168,7 @@
                     {
                         if (cmdOptions.ContainsKey(cmdOption.name))
                         {
+                            throw new ArgumentInvalidException(nameof(cmdOption.name), $"command contains multiple time the option \"{cmdOption.name}\"");
                             // TODO: throw exception if cmdOption already contains the key
                             Console.WriteLine($"Warning: command {cmdOption.name} has already been added to args!");
                         }
@@ -201,6 +226,7 @@
                 }
                 catch (System.FormatException)
                 {
+                    throw;
                     // TODO: Create or throw Exception: Invalid format type
                     Console.WriteLine($"Failed to convert {arg} to type {typeof(T).FullName}");
                     return null;
