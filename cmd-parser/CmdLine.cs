@@ -83,7 +83,7 @@
 
             cmdConfigs = ValidateCmdConfigArray(cmdConfigArray) ?? new CmdConfig[0];
 
-            CreateOptionsCmd();
+            baseArgs = CreateOptionsCmd();
         }
 
         public CmdLine(string[] inArgs, CmdConfig[]? cmdConfigArray = null, bool bContainsCmd = true)
@@ -97,7 +97,7 @@
 
             cmdConfigs = ValidateCmdConfigArray(cmdConfigArray) ?? new CmdConfig[0];
 
-            CreateOptionsCmd();
+            baseArgs = CreateOptionsCmd();
         }
 
         private CmdConfig[]? ValidateCmdConfigArray(CmdConfig[]? cmdConfigArray)
@@ -234,6 +234,55 @@
             }
 
             return optionValues;
+        }
+
+        public override string? ToString()
+        {
+            string res = "";
+            if (cmd != null)
+            {
+                res += "cmd:\n\t" + cmd + "\n";
+            }
+            if (baseArgs.Length > 0)
+            {
+                res += "baseArgs:\n\t" + baseArgs[0];
+                foreach (var arg in baseArgs.Skip(1))
+                {
+                    res += " " + arg;
+                }
+                res += "\n";
+            }
+            if (cmdOptions.Count > 0)
+            {
+                res += "options:\n";
+                foreach (var arg in cmdOptions)
+                {
+                    string pair = "\t" + arg.Key;
+                    if (arg.Value.Length > 0)
+                    {
+                        pair += ": " + arg.Value[0];
+                    }
+                    foreach (var val in arg.Value.Skip(1))
+                    {
+                        pair += ", " + val;
+                    }
+                    pair += "\n";
+
+                    res += pair;
+                }
+            }
+            if (cmdConfigs.Length > 0)
+            {
+                res += "config:\n";
+                foreach (var arg in cmdConfigs)
+                {
+                    string line = "\t" + arg.name;
+                    line += (arg.argCount == null ? ", args: none" : $", args: {arg.argCount}") + "\n";
+                    res += line;
+                }
+            }
+
+            return res;
         }
     }
 }
