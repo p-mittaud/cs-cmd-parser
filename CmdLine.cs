@@ -7,10 +7,6 @@
             : base(paramName, message) { }
     }
 
-    /// <summary>
-    /// Holds the configuration of a single command
-    /// Contains the description, if the command has args, how many, ...
-    /// </summary>
     public record CmdConfig
     {
         public string name { get; set; } = default!;
@@ -71,9 +67,7 @@
 
             if (bInQuotes)
             {
-                // TODO: throw exception, invalid commandLine
                 throw new ArgumentInvalidException(nameof(command), $"command contains an invalid number of quotes character!");
-                //Console.Error.WriteLine("Invalid Command received in CommandLine!");
             }
 
             if (bContainsCmd)
@@ -106,9 +100,6 @@
             {
                 return null;
             }
-
-            // Check if all cmdConfig in cmdConfigArray don't share the same name
-            // If there is: throw exception
 
             foreach (var cmdConfig in cmdConfigArray)
             {
@@ -169,8 +160,6 @@
                         if (cmdOptions.ContainsKey(cmdOption.name))
                         {
                             throw new ArgumentInvalidException(nameof(cmdOption.name), $"command contains multiple time the option \"{cmdOption.name}\"");
-                            // TODO: throw exception if cmdOption already contains the key
-                            Console.WriteLine($"Warning: command {cmdOption.name} has already been added to args!");
                         }
                         else
                         {
@@ -194,12 +183,6 @@
             return cmdOptions.ContainsKey(inOption);
         }
 
-        /// <summary>
-        /// Returns values associated to a command option.
-        /// </summary>
-        /// <typeparam name="T">The type to convert found options.</typeparam>
-        /// <param name="inOption">Option name to find.</param>
-        /// <returns>Found options or null if empty.</returns>
         public T[]? GetOptionValues<T>(string inOption)
         {
             if (!cmdOptions.ContainsKey(inOption))
@@ -227,9 +210,6 @@
                 catch (System.FormatException)
                 {
                     throw;
-                    // TODO: Create or throw Exception: Invalid format type
-                    Console.WriteLine($"Failed to convert {arg} to type {typeof(T).FullName}");
-                    return null;
                 }
             }
 
