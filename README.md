@@ -1,19 +1,17 @@
 # cs-cmd-parser
-A project used to parse command lines in C#.
+A project of a single file to parse your C# command lines.
 
 ## How to use
-Use one of the constructor of the CmdLine class:
-`CmdLine(string command, CmdConfig[]? inCmdConfig = null, bool bContainsCmd = true)`
-if you want to parse a string, or
-`CmdLine(string[] inArgs, CmdConfig[]? cmdConfig = null, bool bContainsCmd = true)`
-if you want to parse a string array.
+Use one of the constructor of the CmdLine class which takes an string or an array of string.
+The command is then cut in different parts. If a CmdConfig has been set, you can easily get parameters of your options.
 
-`CmdConfig` is a record used to parse the options of your command line. You can only setup options at construction.
-If `bContainsCmd` is true, the first word of the input will be considered as the main command.
+### Notes
+If an error occurs, an exception will be thrown with more details.
 
-Once the CmdLine is created, you can access the main command, cmdOptions and their values and the base arguments of the command.
 
-## Coming soon
-- [ ] Add of exception to throw errors
-- [ ] Removal of defaults options prefixes
-- [ ] Add of a license
+### Example
+```
+CmdConfig[] config = new CmdConfig[] { new CmdConfig { name = "--cmd", hasArgs = false, } };
+CmdLine cmdLine = new CmdLine(args, config);
+Console.WriteLine(cmdLine.ToString());
+```
